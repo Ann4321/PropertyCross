@@ -1,74 +1,138 @@
 <html>
-<head>
-  <title>PropertyCross</title>
 
+<head>
+    <title>PropertyCross</title>
+    <link rel="stylesheet" href="bootstrap-3.3.5/css/bootstrap.min.css">
 </head>
+
 <body>
 
+    <div class="container">
+        <form class="form-inline" id="serch-form">
+            <div class="form-group">
 
-  <form id="search-form">
-    <input type="text" name="query">
-       
-       <button>ok</button>
-    </form>  
+                <form id="search-form">
+                    <input type="adress" class="form-control" id="exampleInputAdress1" placeholder="Adress">
+                    <button class="btn btn-success">ok</button>
+                </form>
+            </div>
+       </form>
+        <div id="result" >   
 
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.js"></script>
+       </div>
+    </div>
 
-     <script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.3/jquery.js"></script>
+    <script src="bootstrap-3.3.5/js/bootstrap.js"></script>
 
-     (function() {
-    var nestoriaApi = {
-      url = 'http://api.nestoria.co.uk/api?' + 
-            'country=uk&pretty=1&action=search_listings&' + 
-            'encoding=json&listing_type=buy&page=1&' + 
-            'number_of_results=6';
-    
-    var nestoriaApi = {
-      getLocation: function (placeName, successCallback, errorCallback){
-        $.ajax({
-            url: url + '&place_name=' + placeName,
-            dataType:'jsonp',
-            success: successCallback,
-            error: errorCallback
-          });
-         }
-    };
-      global.nestoriaApi = nestoriaApi;
-  })(window);
+    <script>
+        (function(global) {
 
+            var url = 'http://api.nestoria.co.uk/api?' +
+                'country=uk&pretty=1&action=search_listings&' +
+                'encoding=json&listing_type=buy&page=1&' +
+                'number_of_results=6';
 
-
-     $(function(){ //document ready
-
-        var $searchForm=$('#search-form');
-        //находим input
-        var $query=$('#query');
-
-        //coздаем функцию колбек для submit формы
-       function onSubmitHandler (event){
-          //this - объект элемента на котором произошло событие
-          var inputValue = $query.val();
-            
-         
-          console.log('onSubmitHandler', inputValue);
-
-          var error, success;
-          error = function(data) {
-            console.log(data);
-          },
-          success = error;
-
-          nestoriaApi.getLocations(inputValue, success, error);
-          
-          event.preventDefault();
-        };
-
-        $searchForm.on('submit', onSubmitHandler);
-             
-     });
+            var nestoriaApi = {
+                getLocation: function(placeName, successCallback, errorCallback) {
+                    $.ajax({
+                        url: url + '&place_name=' + placeName,
+                        dataType: 'jsonp',
+                        success: successCallback,
+                        error: errorCallback
+                    });
+                }
+            };
+            global.nestoriaApi = nestoriaApi;
+        })(window);
 
 
-     </script>
-    
-    </body>
+
+
+        $(function() { //document ready
+
+            var $searchForm = $('#search-form');
+            //находим input
+            var $query = $('#query');
+
+            var queryText = (function() {
+                var value = '';
+
+                return {
+                    get: function() {
+                        return value;
+                    },
+                    set: function(val) {
+                        _value = val;
+                        $query.trigger('querytext:new', val);
+                    }
+                };
+            })();
+
+            //coздаем функцию колбек для submit формы
+            function onSubmitHandler(event) {
+                //this - объект элемента на котором произошло событие
+                var inputValue = $query.val();
+
+                /*  var error, success;
+                    error = function(data) {
+                            console.log(data);
+                        },
+                        success = error;
+
+                    nestoriaApi.getLocations(inputValue, success, error);
+*/
+                event.preventDefault();
+            };
+            var showBuildingsList = function(response){
+              console.info('showBuildingsList', response);
+              //response.listings[0].img_url
+              //response.listings[0].price_formatted
+              //response.listings[0].
+              //response.listings[0].summary
+            };
+            var showLocationsList = function(){
+              console.info('showLocationsList');
+            };
+            var showErrorsList = function(){
+              console.info('showErrorsList');
+            };
+              var onChangeQueryText = function(event, text) {
+                console.log('querytext:new');
+                var callbackSuccess = function(data) {
+                    console.info(data);
+                    switch (data.response.application_response_code) {
+                      case '100':
+                      case '101':
+                      case '110':
+                        showBuildingsList(data, response);
+                        break;
+
+                      case '200':
+                      case '202':
+                        showBuildingsList(data, response);
+                        break;
+                        default:
+                        showBuildingsList(data, response);
+                    }
+                };
+                var callbackError = function(data) {
+                    console.error(data);
+                };
+                nestoriaApi.getLocations(text, callbackSuccess, callbackError);
+              
+            };
+
+
+
+
+            $searchForm.on('submit', onSubmitHandler);
+
+            $query.on('guerytext:new', onChangeQueryText);
+
+        });
+    </script>
+
+</body>
+
 </html>
